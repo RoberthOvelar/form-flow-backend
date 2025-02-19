@@ -1,4 +1,5 @@
 import { ALLOW_ANONYMOUS } from '@/decorators/allow-anonymous.decorator';
+import { IUserCls } from '@/interfaces/i-user-cls';
 import { TokenPayload } from '@/types/token-payload';
 import {
   CanActivate,
@@ -10,12 +11,14 @@ import {
 import { APP_GUARD, Reflector } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
+import { ClsService } from 'nestjs-cls';
 
 @Injectable()
 export class JwtGuard implements CanActivate {
   constructor(
-    private jwtService: JwtService,
-    private reflector: Reflector,
+    private readonly jwtService: JwtService,
+    private readonly reflector: Reflector,
+    private readonly clsService: ClsService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -35,11 +38,8 @@ export class JwtGuard implements CanActivate {
     }
 
     try {
-      const payload = await this.jwtService.verifyAsync<TokenPayload>(token, {
-        secret: 'secretKey',
-      });
-
-      console.log(payload);
+      const payload = await this.jwtService.verifyAsync<TokenPayload>(token);
+      this.clsService.set<IUserCls>('userId', payload.sub);
     } catch {
       throw new UnauthorizedException();
     }

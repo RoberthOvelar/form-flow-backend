@@ -1,16 +1,35 @@
-import { Module } from '@nestjs/common';
 import { AppController } from '@/app.controller';
 import { AppService } from '@/app.service';
-import { MongooseModule } from '@nestjs/mongoose';
-import { UserModule } from '@modules/user/user.module';
+import { JwtGuardProvider } from '@/guards/jwt.guard';
 import { AuthModule } from '@modules/auth/auth.module';
-import { JwtGuardProvider } from '@modules/auth/jwt.guard';
+import { UserModule } from '@modules/user/user.module';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose';
+import app from '@config/app';
+import { ClsModule } from 'nestjs-cls';
 
 @Module({
   imports: [
     UserModule,
-    MongooseModule.forRoot('mongodb://localhost:27017/form-flow'),
     AuthModule,
+    ClsModule.forRoot({
+      global: true,
+      middleware: {
+        mount: true,
+      },
+    }),
+    ConfigModule.forRoot({
+      load: [app],
+      expandVariables: true,
+    }),
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        ...configService.get<MongooseModuleFactoryOptions>('db'),
+      }),
+    }),
   ],
   controllers: [AppController],
   providers: [JwtGuardProvider, AppService],
