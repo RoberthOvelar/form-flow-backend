@@ -1,7 +1,7 @@
 import { AllowAnonymous } from '@/decorators/allow-anonymous.decorator';
 import { Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -9,7 +9,7 @@ export class AuthController {
 
   @Post('/login')
   @AllowAnonymous()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.login(createAuthDto);
+  create(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
   }
 }

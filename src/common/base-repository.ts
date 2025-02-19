@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Model, FilterQuery, UpdateQuery, Document } from 'mongoose';
 
 export class BaseRepository<T extends Document> {
@@ -8,8 +9,12 @@ export class BaseRepository<T extends Document> {
     return created.save();
   }
 
-  async findOne(filter: FilterQuery<T>): Promise<T | null> {
-    return this.model.findOne(filter).exec();
+  async findOne(filter: FilterQuery<T>): Promise<T> {
+    const result = await this.model.findOne(filter).exec();
+    if (!result) {
+      throw new NotFoundException();
+    }
+    return result;
   }
 
   async findAll(filter: FilterQuery<T> = {}): Promise<T[]> {
