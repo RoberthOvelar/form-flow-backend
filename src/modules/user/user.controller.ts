@@ -1,16 +1,16 @@
-import { Controller, Get, Post } from '@nestjs/common';
+import { AllowAnonymous } from '@/decorators/allow-anonymous.decorator';
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { CreateUserDto } from './dtos/create-user.dto';
 import { User } from './user.schema';
 import { UserService } from './user.service';
-import { AllowAnonymous } from '@/decorators/allow-anonymous.decorator';
-
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
   @AllowAnonymous()
-  async create(): Promise<User> {
-    return this.userService.create();
+  async create(@Body() dto: CreateUserDto): Promise<User> {
+    return this.userService.create(dto);
   }
 
   @Get('/me')
