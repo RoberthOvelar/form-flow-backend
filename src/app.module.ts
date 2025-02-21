@@ -1,18 +1,21 @@
-import { AppController } from '@/app.controller';
-import { AppService } from '@/app.service';
 import { JwtGuardProvider } from '@/guards/jwt.guard';
+import { classes } from '@automapper/classes';
+import { AutomapperModule } from '@automapper/nestjs';
+import app from '@config/app';
 import { AuthModule } from '@modules/auth/auth.module';
 import { UserModule } from '@modules/user/user.module';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule, MongooseModuleFactoryOptions } from '@nestjs/mongoose';
-import app from '@config/app';
 import { ClsModule } from 'nestjs-cls';
 
 @Module({
   imports: [
     UserModule,
     AuthModule,
+    AutomapperModule.forRoot({
+      strategyInitializer: classes(),
+    }),
     ClsModule.forRoot({
       global: true,
       middleware: {
@@ -31,7 +34,6 @@ import { ClsModule } from 'nestjs-cls';
       }),
     }),
   ],
-  controllers: [AppController],
-  providers: [JwtGuardProvider, AppService],
+  providers: [JwtGuardProvider],
 })
 export class AppModule {}

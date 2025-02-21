@@ -1,35 +1,50 @@
 import { IUserCls } from '@/interfaces/i-user-cls';
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { ClsService } from 'nestjs-cls';
 import { CreateUserDto } from './dtos/create-user.dto';
 import { UserRepository } from './user.repository';
 import { User } from './user.schema';
+import { ReturnUserDto } from './dtos/return-user.dto';
+import { Mapper } from '@automapper/core';
+import { InjectMapper } from '@automapper/nestjs';
+import { UpdateUserDto } from './dtos/update-user.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly clsService: ClsService<IUserCls>,
+    @InjectMapper() private readonly mapper: Mapper,
   ) {}
 
   async create(dto: CreateUserDto): Promise<User> {
-    const entity = dto;
+    const existingUser = await this.userRepository.findByEmail(dto.email);
 
-    const password = await argon2.hash('12345678');
+    if (existingUser) {
+      throw new ConflictException('Email já cadastrado');
+    }
 
-    return await this.userRepository.create({
-      ...entity,
-      password,
-    });
+    const password = await argon2.hash(dto.password);
+
+    return await this.userRepository.create({ ...dto, password });
+  }
+
+  async updateProfile(dto: UpdateUserDto): Promise<ReturnUserDto> {
+    const userId = this.clsService.get('userId');
+    const result = await this.userRepository.update({ _id: userId }, dto);
+
+    return this.mapper.map(result, User, ReturnUserDto);
   }
 
   async findByEmail(email: string) {
     return this.userRepository.findByEmail(email);
   }
 
-  async getProfile(): Promise<User> {
+  async getProfile(): Promise<ReturnUserDto> {
     const userId = this.clsService.get('userId');
-    return await this.userRepository.findOne({ _id: userId });
+    const result = await this.userRepository.findOne({ _id: userId });
+
+    return this.mapper.map(result, User, ReturnUserDto);
   }
 }

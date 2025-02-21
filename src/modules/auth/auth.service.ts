@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
 import { UserService } from '../user/user.service';
 import { LoginDto } from './dto/login.dto';
+import { ReturnTokenDto } from './dto/return-token';
 
 @Injectable()
 export class AuthService {
@@ -12,7 +13,7 @@ export class AuthService {
     private readonly userService: UserService,
   ) {}
 
-  async login(loginDto: LoginDto) {
+  async login(loginDto: LoginDto): Promise<ReturnTokenDto> {
     const result = await this.userService.findByEmail(loginDto.email);
 
     if (!result) {
@@ -24,15 +25,15 @@ export class AuthService {
       loginDto.password,
     );
 
-    if (isValidPassword) {
+    if (!isValidPassword) {
       throw new UnauthorizedException('Usuário ou senha inválido');
     }
 
-    return {
+    return Object.assign(new ReturnTokenDto(), {
       accessToken: await this.jwtService.signAsync({
         email: result.email,
         sub: result._id,
       }),
-    };
+    });
   }
 }

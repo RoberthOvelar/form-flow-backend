@@ -1,21 +1,27 @@
+import { AutoMap } from '@automapper/classes';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Exclude, Expose } from 'class-transformer';
+import { Expose } from 'class-transformer';
 import { Document } from 'mongoose';
 @Schema()
 export class User extends Document {
+  @AutoMap()
+  id: string;
+
   @Expose()
+  @AutoMap()
   @Prop({ required: true })
   firstName!: string;
 
   @Expose()
+  @AutoMap()
   @Prop({ required: true })
   lastName!: string;
 
   @Expose()
+  @AutoMap()
   @Prop({ required: true, unique: true, index: true })
   email!: string;
 
-  @Exclude()
   @Prop({ required: true })
   password!: string;
 }
