@@ -18,7 +18,7 @@ export class UserService {
     @InjectMapper() private readonly mapper: Mapper,
   ) {}
 
-  async create(dto: CreateUserDto): Promise<User> {
+  async create(dto: CreateUserDto): Promise<ReturnUserDto> {
     const existingUser = await this.userRepository.findByEmail(dto.email);
 
     if (existingUser) {
@@ -27,7 +27,9 @@ export class UserService {
 
     const password = await argon2.hash(dto.password);
 
-    return await this.userRepository.create({ ...dto, password });
+    const result = await this.userRepository.create({ ...dto, password });
+
+    return this.mapper.map(result, User, ReturnUserDto);
   }
 
   async updateProfile(dto: UpdateUserDto): Promise<ReturnUserDto> {
@@ -41,7 +43,7 @@ export class UserService {
     return this.userRepository.findByEmail(email);
   }
 
-  async getProfile(): Promise<ReturnUserDto> {
+  async findProfile(): Promise<ReturnUserDto> {
     const userId = this.clsService.get('userId');
     const result = await this.userRepository.findOne({ _id: userId });
 
